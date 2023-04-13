@@ -1,0 +1,16 @@
+bgRulePos(b3,3).
+bgRulePos(b3,6).
+bgRulePos(b3,19).
+bgRulePos(b3,8).
+bgRulePos(b3,1).
+bgRuleNeg(b3,2).
+bgRuleNeg(b3,18).
+bgRuleNeg(b3,9).
+bgRuleNeg(b3,23).
+bgRuleNeg(b3,15).
+bgRuleNeg(b3,10).
+bgRuleNeg(b3,17).
+bgRuleNeg(b3,14).
+bgRuleNeg(b3,13).
+bgRuleNeg(b3,22).
+bgRuleHead(b3,61).

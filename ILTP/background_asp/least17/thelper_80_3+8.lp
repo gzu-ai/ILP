@@ -1,0 +1,15 @@
+bg_body_pos(1,16).
+bg_body_pos(1,12).
+bg_body_neg(1,17).
+bg_body_neg(1,20).
+bg_body_neg(1,4).
+bg_body_neg(1,1).
+bg_body_neg(1,8).
+bg_body_neg(1,2).
+bg_body_neg(1,3).
+bg_body_neg(1,22).
+bg_body_neg(1,19).
+bg_body_neg(1,10).
+bg_body_neg(1,23).
+bg_body_neg(1,18).
+bg_necessity(1,44).
