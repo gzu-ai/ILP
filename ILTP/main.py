@@ -4,7 +4,10 @@
 
 # To run as follows:
 # <this-file> <program>
-
+'''
+2023.10.20发现函数refreshRuleFromLine在empty body时若直接return则会丢失部分facts规则，改正过来。
+2024.9.27在本地跑fission_10_3的代码，以便补充小论文的附录部分。
+'''
 import numpy as np
 import os  # for file reading and writting
 import sys, getopt  # for argv argument
@@ -140,8 +143,9 @@ class cRule:
             list_body = h_and_b[1].split(',')
         elif len(h_and_b[1].strip()) > 0:  # contain only one element #one body
             list_body = [h_and_b[1]]
-        else:  # no body
-            return
+        else:  # no body 2023.10.20发现函数refreshRuleFromLine在empty body时若直接return则会丢失部分facts规则，改正过来。
+            list_body = []
+            #return
         for str_atom in list_body:
             str_atom = str_atom.strip()
             if str_atom.startswith('not'):  # negative body
@@ -564,12 +568,8 @@ class CMDsClingo:
         self.cmd_list = lst
         self.atom_ids = atom_ids
         self.magnification = magnification
-        self.resultsDict = dict()
-        self.modelsDict = dict()
-        self.solsList = list()
-        self.timeoutFlag = False
-        self.optimumFlag = True
-        self.ruleCnt = 0
+        timeoutFlag = False
+        optimumFlag = True
 
     @fn_memory_time
     def exeCMDsParallel(self,t_str):
@@ -729,9 +729,9 @@ def gen_E_B_H_check_new_compare():
         def getCMDs(t_str):
             global type_file_dict
             cmd_list = list()
-            exe_path = 'clingo' # 'c:/Users/86188/.vscode/extensions/ffrankreiter.answer-set-programming-language-support-0.7.0/clingo_win.exe'
+            exe_path = 'c:/Users/86188/.vscode/extensions/ffrankreiter.answer-set-programming-language-support-0.7.1/clingo_win.exe' # 'c:/Users/86188/.vscode/extensions/ffrankreiter.answer-set-programming-language-support-0.7.0/clingo_win.exe'
             encoding_path = root_dir + '/%s.lp' % type_file_dict[t_str]
-            parameter_path = '--outf=0 --verbose=1 --parallel-mode=2,compete  --models 0 --opt-mode=opt --quiet=1 ' # --time-limit=7200 --time-limit=1800
+            parameter_path = '--outf=0 --verbose=1 --parallel-mode=2,compete --time-limit=1800 --models 0 --opt-mode=opt --quiet=1' #--time-limit=1800
             totalParts = 1
             if t_str[-3:] == 'Sep':
                 totalParts = len(NLP.atom_ids)
@@ -881,8 +881,8 @@ def externalCall():
     file_name = sys.argv[6]
 
 if __name__ == "__main__":
-    GRN_name = 'arabidopsis' #tcrNet  mammalian
-    num_of_Is = 80 #{40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480}
+    GRN_name = 'fission'
+    num_of_Is = 10 #{40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480}
     Bs_ratio = 0.1 #the actual num_of_Bs is determined by Bs_ratio * (NLP.Rules)
     #search_type_list = 'optimalBound+optimalConstraintR+optimalConstraintSP+specificTrimed+specificNaive+optimalApplicableR+' \
     #                  'optimalBoundSep+optimalConstraintRSep+optimalConstraintSPSep+specificTrimedSep+specificNaiveSep' #refer to type_file_dict
@@ -890,17 +890,13 @@ if __name__ == "__main__":
     #search_type_list = 'optimalBound+optimalConstraintR'
     #search_type_list = 'optimalBound+optimalApplicableR+optimalConstraintR'
     #search_type_list = 'optimalBound+optimalLeast+optimalLeastSep+optimalApplicableR+optimalApplicableSP'
-    #search_type_list = 'optimalApplicableR+optimalApplicableA+optimalApplicableS+optimalApplicableSP' #optimalApplicableSP
+    #search_type_list = 'optimalBoundSep+optimalLeastSPSep+optimalLeastSep+optimalLeastASep+optimalLeastSSep'
     #search_type_list = 'optimalBoundSep+optimalConstraintRSep'
-    #search_type_list = 'specificNaiveSep+specificTrimedSep'
-    #search_type_list = 'specificTrimed+specificTrimedSep'
-    #search_type_list = 'specificTrimedSep+optimalLeastSep'
-    #search_type_list = 'optimalLeastSPSep+optimalApplicableSP'
-    #search_type_list = 'optimalLeastSPSep+optimalLeastSep+optimalLeastASep+optimalLeastSSep'
-    #search_type_list = 'optimalLeastSep'
-    search_type_list = 'specificTrimedSep'
-    silent_level = 5
-    file_name = 'log0224.log'
+    #search_type_list = 'optimalApplicableR+optimalLeast'
+    #search_type_list = 'optimalBoundSep'
+    search_type_list = 'specificTrimedSep+optimalLeastSep'
+    silent_level = 1
+    file_name = 'log.log'
 
     type_file_dict = {'optimalBound':'MHSC','optimalLeast':'MHSC-uniform','optimalConstraintR':'R-ILTP','optimalConstraintSP':'SP-ILTP','specificTrimed':'ILTP',
                       'specificNaive':'ILTP-naive','optimalApplicableR':'R-ILTP-app','optimalApplicableA':'A-ILTP-app','optimalApplicableS':'S-ILTP-app',
@@ -915,12 +911,12 @@ if __name__ == "__main__":
     #externalCall()
 
     # GRN_name  is an element from GRN_name_list
-    GRN_name_list = ['budding'] # ['tcrNet', 'thelper','arabidopsis',  'budding', 'fission', 'mammalian'] 不确定边界时，倒序更合理
+    GRN_name_list = ['mammalian', 'fission', 'budding', 'arabidopsis', 'thelper', 'tcrNet']
     #Is_amount_list = [40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480] #[10, 20, 40, 80, 160, 640]  # the num_of_Is is an element from Is_amount_list
-    Is_amount_list = [4000, 4500] # ,  240, 280,  320,  360,  400   20,40, 60, 80, 100, 120, 140,160, 180,200, 220,240, 260,280, 300,320,340, 360,  [100, 1000, 10000]   [500, 1500, 2000, 2500] [3000, 3500, 4000, 4500, 5000] [20, 60, 100, 140, 180, 220, 260, 300]
+    Is_amount_list = [500, 1500, 2000, 2500] #[100, 1000, 10000]
     Bs_ratio_list = [0.1, 0.4, 0.8]
     num_of_Bs = 0 
-    times = 20  # run 10 times and get the average. 2 fro margin.
+    times = 10  # run 10 times and get the average
 
 
     root_dir = os.getcwd()
@@ -932,66 +928,23 @@ if __name__ == "__main__":
     backgrounds_txt_dir = root_dir + '/background_txt'
     background_asp_dir = root_dir + '/background_asp'
     auxiliary_dir = root_dir + '/auxiliary'
-    hypotheses_dir = root_dir + '/hypotheses'
-
-
+    hypotheses_dir = root_dir + '/hypotheses'    
 
     def exe():
         gen_E_B_H_check_new_compare()
         with open(root_dir + '/log/' + file_name, 'a+', encoding='utf-8') as file:
             file.write(json.dumps(record_list).replace('\"', '') + '\n')
-            localtime = time.localtime(time.time())
-            timestring = time.strftime('%Y/%m/%d - %H:%M:%S')
-            file.write( '# Local current time : %s' % timestring  + '\n')
         file.close()
 
 
-    t = 9
-    tmp_examples_asp_dir = examples_asp_dir + '/least'
-    tmp_background_asp_dir = background_asp_dir + '/least'
-    examples_asp_dir = tmp_examples_asp_dir + '%i' % t
-    background_asp_dir = tmp_background_asp_dir + '%i' % t
+    record_list = [GRN_name, num_of_Is, Bs_ratio]
+    exe()
 
-    # record_list = [GRN_name, num_of_Is, Bs_ratio]
-    # exe()
-
-    #optimalLeastSep
-    # for t in range(times):
-    #     t = t + 0
-    for t in [4, 8, 18]:
-        examples_asp_dir = tmp_examples_asp_dir + '%i' %t
-        background_asp_dir = tmp_background_asp_dir + '%i' %t
-        # record_list = [GRN_name, num_of_Is, Bs_ratio]
-        # exe()
-        for i in Is_amount_list:
-            num_of_Is = i
-            for g in GRN_name_list:
-                GRN_name = g
-                record_list = [GRN_name, num_of_Is, Bs_ratio]
-                exe()
-
-
-
-    # for i in Is_amount_list:
-    #     num_of_Is = i
-    #     for g in GRN_name_list:
-    #         GRN_name = g
-    #         record_list = [GRN_name, num_of_Is, Bs_ratio]
-    #         exe()
-
-    #repeat
+    #optimalBoundSep
     # for i in range(times):
     #     record_list = [GRN_name, num_of_Is, Bs_ratio]
     #     exe()
 
-
-
-    #optimalApplicableR+optimalApplicableSP
-    # for g in GRN_name_list:
-    #     GRN_name = g
-    #     for i in range(times):
-    #         record_list = [GRN_name, num_of_Is, Bs_ratio]
-    #         exe()
 
     #specificTrimedSep + specificNaiveSep
     # for i in Is_amount_list:
@@ -1004,22 +957,14 @@ if __name__ == "__main__":
 
 
 
-    # for t in range(times):
-    #     for i in Is_amount_list:
-    #         num_of_Is = i
-    #         for g in GRN_name_list:
-    #             GRN_name = g
-    #             record_list = [GRN_name, num_of_Is, Bs_ratio]
-    #             exe()
-
     #optimalBoundSep+optimalConstraintRSep
     # for g in GRN_name_list:
     #     GRN_name = g
-    #     for i in Is_amount_list:
-    #         num_of_Is = i
-    #         for i in range(times):
-    #             record_list = [GRN_name, num_of_Is, Bs_ratio]
-    #             exe()
+    #     for b in Bs_ratio_list:
+    #         Bs_ratio = b
+    #         #for i in range(times):
+    #         record_list = [GRN_name, num_of_Is, Bs_ratio]
+    #         exe()
 
 
 
